@@ -40,5 +40,10 @@ MonoBehaviour:
   - PlaceObjectInRoom
   - PlaceObject
   - TestRPC
+  - UpdateBiasVectors
+  - UpdateOtherBiasVector
+  - DestroyPlacedObject
+  - BroadcastObjectPush
+  - UpdateObjectPosition
   DisableAutoOpenWizard: 1
   ShowSettings: 0
