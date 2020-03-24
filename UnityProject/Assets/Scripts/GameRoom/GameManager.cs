@@ -14,9 +14,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public TMPro.TextMeshProUGUI playerListText;
     //public Material demoCubeMaterial;
-    public string messages;
+    private string messages;
     public InputField inputField;
-    public TMPro.TextMeshPro textToThrow;
+    public Text textToThrow;
     public GameObject buttonQuit;
     public GameObject buttonSend;
     public GameObject textBox;
@@ -134,6 +134,17 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    [PunRPC]
+    void SwitchLevels(string level)
+    {
+        PhotonNetwork.LoadLevel(level);
+    }
+
+    public void ChangeToARLevel()
+    {
+        photonView.RPC("SwitchLevels", RpcTarget.AllViaServer, "ARDemoScene");
+    }
+
     IEnumerator ThrowMessage(string toSend)
     {
         if (isSender == true)
@@ -178,5 +189,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         SceneManager.LoadScene("GameRoom");
         Debug.Log("Joined Gameroom");
+    }
+    public void QuitApp()
+    {
+        Application.Quit();
     }
 }

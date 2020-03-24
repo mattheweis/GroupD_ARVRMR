@@ -7,14 +7,27 @@ using Photon.Realtime;
 public class ChooseKind : MonoBehaviour
 {
     // Start is called before the first frame update
-   public void ChooseMessages()
+
+    public GameObject ARStartButton;
+
+    private void Start()
+    {
+        ARStartButton.SetActive(false);
+    }
+
+    public void ChooseMessages()
     {
         PhotonNetwork.LoadLevel("GameRoom");
     }
     public void ChooseStickers()
     {
-        PhotonNetwork.LoadLevel("ARDemoScene");
+        ARStartButton.SetActive(true);
         //Debug.Log("Loading the sticker scene(Not implemented yet)");
+    }
+
+    public void ConfirmMessage()
+    {
+        PhotonNetwork.LoadLevel("ARDemoScene");
     }
 
 }

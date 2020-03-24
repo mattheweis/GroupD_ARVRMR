@@ -10,11 +10,12 @@ using Photon.Realtime;
 public class Launcher : MonoBehaviourPunCallbacks
 {
 
-    public TMPro.TextMeshProUGUI DebugText;
+    //public TMPro.TextMeshProUGUI DebugText;
     public GameObject controlPanel;
-    public GameObject progressLabel;
+    //public GameObject progressLabel;
     private bool chooseMessage;
     private bool chooseSticker;
+    public Animator animator;
 
     bool isConnecting;
 
@@ -26,8 +27,9 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        progressLabel.SetActive(false);
+        //progressLabel.SetActive(false);
         controlPanel.SetActive(true);
+        
         //Connect();
     }
 
@@ -38,13 +40,15 @@ public class Launcher : MonoBehaviourPunCallbacks
     }
     public void Connect()
     {
-        progressLabel.SetActive(true);
+        //progressLabel.SetActive(true);
         controlPanel.SetActive(false);
+        animator.SetBool("StartAnimation",true);
         // we check if we are connected or not, we join if we are , else we initiate the connection to the server.
         if (PhotonNetwork.IsConnected)
         {
             // #Critical we need at this point to attempt joining a Random Room. If it fails, we'll get notified in OnJoinRandomFailed() and we'll create one.
             PhotonNetwork.JoinRandomRoom();
+            //animator.SetBool("StartAnimation", false);
             //PhotonNetwork.LoadLevel("ChoosingScene");
         }
         else
@@ -52,6 +56,7 @@ public class Launcher : MonoBehaviourPunCallbacks
             // #Critical, we must first and foremost connect to Photon Online Server.
             isConnecting = PhotonNetwork.ConnectUsingSettings();
             PhotonNetwork.GameVersion = "0.0.0";
+            //animator.SetBool("StartAnimation", false);
         }
         
     }
@@ -88,7 +93,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        progressLabel.SetActive(false);
+        //progressLabel.SetActive(false);
         controlPanel.SetActive(true);
         Debug.Log("Disconnected.");
     }

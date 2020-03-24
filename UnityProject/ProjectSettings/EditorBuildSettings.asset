@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/TrainScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 0
     path: Assets/Scenes/Launcher.unity
     guid: 6e70bf5116dac7d42bb27d2f048f9e10
   - enabled: 1
@@ -14,9 +17,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameRoom.unity
     guid: 7365be01359f6bb44bf418f5c297df82
-  - enabled: 1
-    path: Assets/Scenes/StickerScene.unity
-    guid: a2f120c9060943a4b90e154b30b6d4f3
   - enabled: 1
     path: Assets/Scenes/ARDemoScene.unity
     guid: 2d8855fb90a4b83448077fa3c99303a4
