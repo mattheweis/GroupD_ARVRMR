@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.Experimental.XR;
 using UnityEngine.XR.ARSubsystems;
@@ -12,6 +13,8 @@ using Photon.Realtime;
 public class ARScriptManager : MonoBehaviourPunCallbacks
 {
 
+    public bool debuggingMode = false;
+    
     /* AR variables */
     public ARSessionOrigin sessionOrigin;
     public ARRaycastManager raycastManager;
@@ -48,9 +51,7 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
     public AudioClip failureClip;
 
     /* Speed Adjustment */
-    public float ballSpeed = 2;
-
-    public Pose commonRefPointPose;
+    public float ballSpeed = 4f;
 
     /* Debugging */
     public GameObject debugPrefab;
@@ -67,14 +68,26 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
 
     /* Reference points */
     private Vector3 otherRefPoint;
+    private Pose commonRefPointPose;
 
+    /* Physics calculations */
     private Rigidbody itemRigid;
+
+    /* Instruction images */
+    public Image instructionImage;
+    public Sprite s_cannotDetectPlane;
+    public Sprite s_emptyImage;
+    public Sprite s_tapToAnchor;
+    public Sprite s_waitingForPuck;
 
     /* Start currently for debugging purposes */
     void Start()
     {
-        debugText.text = "Waiting";
-        photonDebugText.text = "Waiting";
+        if (debuggingMode)
+        {
+            debugText.text = "Waiting";
+            photonDebugText.text = "Waiting";
+        }
         originPoint = transform.position;
         originRotation = transform.rotation;
     }
@@ -90,7 +103,11 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void PlaceObject(float poseX, float poseY, float poseZ, PhotonMessageInfo info)
     {
-        photonDebugText.text = "PUN RPC was called";
+        
+        if (debuggingMode)
+        {
+            photonDebugText.text = "PUN RPC was called";
+        }
 
         Vector3 objectVect;
 
@@ -103,7 +120,11 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
             objectVect = new Vector3(poseX, poseY, poseZ);
         }
 
-        coordinateDebugText.text = coordinateDebugText.text + "\nto -> " + objectVect.x.ToString() + ", " + objectVect.y.ToString() + ", " + objectVect.z.ToString();
+        if (debuggingMode)
+        {
+            coordinateDebugText.text = coordinateDebugText.text + "\nto -> " + objectVect.x.ToString() + ", " + objectVect.y.ToString() + ", " + objectVect.z.ToString();
+        }
+        
         int objectId = 0;
         if (anchorSet)
         {
@@ -135,8 +156,11 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            photonDebugText.text = "Received object push broadcast.";
-            //Vector3 newVector = DetermineMyVector(new Vector3(x, y, z), otherRefPoint, commonRefPointPose.position);
+            if (debuggingMode)
+            {
+                photonDebugText.text = "Received object push broadcast.";
+            }
+            // Vector3 newVector = DetermineMyVector(new Vector3(x, y, z), otherRefPoint, commonRefPointPose.position);
             itemRigid.velocity = new Vector3(0, 0, 0);
             itemRigid.AddForce(new Vector3(x, y, z), ForceMode.Impulse);
         }
@@ -202,7 +226,10 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
     {
         if (!PhotonNetwork.IsMasterClient)
         {
-            photonDebugText.text = "Received update info.";
+            if (debuggingMode)
+            {
+                photonDebugText.text = "Received update info.";
+            }
             placedItem.transform.position = DetermineMyVector(new Vector3(x, y, z), otherRefPoint, commonRefPointPose.position);
         }
     }
@@ -216,7 +243,10 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
         {
             if (placedItemStatus && PhotonNetwork.IsMasterClient)
             {
-                photonDebugText.text = "Sent update broadcast.";
+                if (debuggingMode)
+                {
+                    photonDebugText.text = "Sent update broadcast.";
+                }
                 photonViewObject.RPC("UpdateObjectPosition", RpcTarget.AllViaServer, placedItem.transform.position.x, placedItem.transform.position.y, placedItem.transform.position.z);
             }
         }
@@ -224,17 +254,35 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            masterClientDebugText.text = "You are the master!";
+            masterClientDebugText.text = "Master Client";
         }
         else
         {
-            masterClientDebugText.text = "You are not the master!";
+            masterClientDebugText.text = "Not Master Client";
         }
 
-        UpdateAnchorTarget();
+        if (placedItemStatus)
+        {
+            UpdateAnchorTarget(false);
+        }
+        else
+        {
+            UpdateAnchorTarget(true);
+        }
+        
         
         if (!anchorSet)
         { 
+            if (canSet)
+            {
+                instructionImage.sprite = s_tapToAnchor;
+            }
+            else
+            {
+                instructionImage.sprite = s_cannotDetectPlane;
+            }
+            
+            
             if (UserBeganTouching() && canSet && !anchorSet)
             {
                 //sessionOrigin.transform.position = placementPose.position;
@@ -244,13 +292,11 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
                 
                 if (commonRefPoint == null)
                 {
-                    Debug.Log("Failed to add reference point");
                     audioSource.PlayOneShot(failureClip);
                 } 
                 else
                 {
                     photonViewObject.RPC("UpdateOtherBiasVector", RpcTarget.Others, placementPose.position.x, placementPose.position.y, placementPose.position.z);
-                    Debug.Log("Successfully added reference point");
                     anchorSet = true;
                     placementIndicator.SetActive(false);
                     audioSource.PlayOneShot(successClip);
@@ -261,13 +307,27 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
         }
         else
         {
+            
+            if (placedItemStatus)
+            {
+                instructionImage.sprite = s_emptyImage;
+            }
+            else
+            {
+                instructionImage.sprite = s_waitingForPuck;
+            }
+            
+            
             if (UserBeganTouching() && canSet)
             {
                 if (!placedItemStatus)
                 {
                     /* Place the sticker of choice in the AR world. */
-                    photonDebugText.text = "Called placement function.";
-                    coordinateDebugText.text = placementPose.position.x.ToString() + ", " + placementPose.position.y.ToString() + ", " + placementPose.position.z.ToString();
+                    if (debuggingMode)
+                    {
+                        photonDebugText.text = "Called placement function.";
+                        coordinateDebugText.text = placementPose.position.x.ToString() + ", " + placementPose.position.y.ToString() + ", " + placementPose.position.z.ToString();
+                    }
                     List<float> toSend = UnpackPose(placementPose);
                     photonViewObject.RPC("PlaceObject", RpcTarget.AllViaServer, toSend[0], toSend[1], toSend[2]);
                 }
@@ -319,10 +379,8 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
     
     /* Update the anchor target indicator position.
      * If the target is invalid, the indicator will not appear. */
-    private void UpdateAnchorTarget()
+    private void UpdateAnchorTarget(bool adjustVisibility)
     {
-
-        bool adjustVisibility = true;
 
         /* Raycast from the user camera onto the detected plane.
          * If there are no hits, the placement is invalid, and so canSet 
@@ -335,7 +393,10 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
         /* Determine placement indicator position based on the raycast information */
         if (canSet)
         {
-            debugText.text = "Can set!";
+            if (debuggingMode)
+            {
+                debugText.text = "Can set!";
+            }
             placementPose = hits[0].pose;
             Vector3 cameraForward = Camera.current.transform.forward;
             Vector3 cameraBearing = new Vector3(cameraForward.x, 0f, cameraForward.z).normalized;
@@ -343,11 +404,16 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            debugText.text = "Cannot set!";
+            if (debuggingMode)
+            {
+                debugText.text = "Cannot set!";
+            }
         }
 
-        currentCoordinateDebugText.text = placementPose.position.x.ToString() + ", " + placementPose.position.y.ToString() + ", " + placementPose.position.z.ToString();
-
+        if (debuggingMode)
+        {
+            currentCoordinateDebugText.text = placementPose.position.x.ToString() + ", " + placementPose.position.y.ToString() + ", " + placementPose.position.z.ToString();
+        }
         /* Do not make visible if we already placed the anchor,
          * but still want to raycast */
         if (adjustVisibility)
@@ -363,56 +429,10 @@ public class ARScriptManager : MonoBehaviourPunCallbacks
                 placementIndicator.SetActive(false);
             }
         }
-    }
-
-    /* Unused code */
-
-    void AddForceToObject(float x, float z, float angle, PhotonMessageInfo meta)
-    {
-
-        Rigidbody itemRb = placedItem.GetComponent<Rigidbody>();
-
-        /* Add force to the object if we are the one that called the function */
-        if (meta.Sender.UserId == PhotonNetwork.LocalPlayer.UserId)
-        {
-            /* If the angle between the camera direction and movement direction is higher than 80',
-             * stop the rigidBody object before applying a force in the opposite direction. This is
-             * intended to allow for the player to ping back an object without having to slow it
-             * down first. */
-            if (Vector3.Angle(Camera.current.transform.forward.normalized, itemRb.velocity.normalized) > 80f)
-            {
-                itemRb.velocity = new Vector3(0, 0, 0);
-            }
-
-            /* As it is not intended for the object to move up or down, the Y component of the camera
-             * direction vector is removed. */
-            Vector3 transformDirection;
-            transformDirection = Camera.current.transform.forward;
-            transformDirection.y = 0;
-            itemRb.AddForce(transformDirection, ForceMode.Impulse);
-        }
-        /* Otherwise, run the force calculation on the other side */
         else
         {
-            Vector3 transformDirection = new Vector3(x, 0, z);
-            itemRb.AddForce(transformDirection, ForceMode.Impulse);
+            placementIndicator.SetActive(false);
         }
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
