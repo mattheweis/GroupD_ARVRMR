@@ -1642,6 +1642,9 @@ MonoBehaviour:
   successClip: {fileID: 8300000, guid: 190a6fe6b608f1042af90e81f5244db9, type: 3}
   failureClip: {fileID: 8300000, guid: 34a980f5d10a3734aab896e47fb7f49e, type: 3}
   ballSpeed: 0
+  commonRefPointPose:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
   debugPrefab: {fileID: 100000, guid: 9c6977a9ecda14e4e96ea3a71c749c2c, type: 3}
   debugText: {fileID: 920670096}
   photonDebugText: {fileID: 2105800918}

@@ -14,9 +14,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public TMPro.TextMeshProUGUI playerListText;
     //public Material demoCubeMaterial;
-    public string messages;
+    private string messages;
     public InputField inputField;
-    public TMPro.TextMeshPro textToThrow;
+    public Text textToThrow;
     public GameObject buttonQuit;
     public GameObject buttonSend;
     public GameObject textBox;
@@ -178,5 +178,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         SceneManager.LoadScene("GameRoom");
         Debug.Log("Joined Gameroom");
+    }
+    public void QuitApp()
+    {
+        Application.Quit();
     }
 }
