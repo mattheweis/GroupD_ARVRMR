@@ -29,5 +29,8 @@ public class ChooseKind : MonoBehaviour
     {
         PhotonNetwork.LoadLevel("ARDemoScene");
     }
-
+    public void OpenTagun()
+    {
+        PhotonNetwork.LoadLevel("SampleScene");
+    }
 }

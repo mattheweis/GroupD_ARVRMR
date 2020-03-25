@@ -12,7 +12,7 @@ using Photon.Realtime;
 public class GameManager : MonoBehaviourPunCallbacks
 {
 
-    public TMPro.TextMeshProUGUI playerListText;
+    //public TMPro.TextMeshProUGUI playerListText;
     //public Material demoCubeMaterial;
     private string messages;
     public InputField inputField;
@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         if (i % 150 == 0)
         {
-            playerListText.text = GeneratePlayerListString();
+            //playerListText.text = GeneratePlayerListString();
         }
         i += 1;
     }
@@ -190,8 +190,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         SceneManager.LoadScene("GameRoom");
         Debug.Log("Joined Gameroom");
     }
-    public void QuitApp()
+    public void LoadPong()
     {
-        Application.Quit();
+        PhotonNetwork.LoadLevel("ArDemoScene");
     }
 }
